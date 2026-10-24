@@ -1,0 +1,27 @@
+[
+    {
+        "id": 1,
+        "name": "Cloud Computing Essentials",
+        "description": "Introduction to cloud architecture and services"
+    },
+    {
+        "id": 2,
+        "name": "PHP & REST APIs",
+        "description": "Building backend web services and REST endpoints"
+    },
+    {
+        "id": 3,
+        "name": "Client-Side jQuery",
+        "description": "Asynchronous JavaScript and AJAX integration"
+    },
+    {
+        "id": 4,
+        "name": "Test",
+        "description": "Test abc"
+    },
+    {
+        "id": 5,
+        "name": "Test 2",
+        "description": "abc"
+    }
+]

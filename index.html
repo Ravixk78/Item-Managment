@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CA1 — Item Management (PHP &amp; REST)</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- jQuery Library -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        :root {
+            /* Light Theme Tokens - Modern Cloud Azure / Tech Blue */
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-card-subtle: #f1f5f9;
+            --border-card: #e2e8f0;
+            --border-card-hover: #cbd5e1;
+            --border-focus: #2563eb;
+
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --primary-glow: rgba(37, 99, 235, 0.15);
+
+            --accent: #0284c7;
+            --accent-light: #f0f9ff;
+
+            --text-main: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --text-inverse: #ffffff;
+
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --danger-border: #fecaca;
+
+            --success: #16a34a;
+            --success-bg: #f0fdf4;
+            --success-border: #bbf7d0;
+
+            --badge-bg: #eff6ff;
+            --badge-text: #1d4ed8;
+            --badge-border: #bfdbfe;
+
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --input-placeholder: #94a3b8;
+
+            --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+            --shadow-glow: none;
+
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-pill: 9999px;
+
+            --transition-fast: 0.15s ease;
+            --transition-smooth: 0.2s ease;
+        }
+
+        /* Dark Theme Tokens - Professional Cloud Azure / Slate Dark Mode */
+        [data-theme="dark"] {
+            --bg-page: #0b0f19;
+            --bg-card: #151d2e;
+            --bg-card-subtle: #101726;
+            --border-card: #222f46;
+            --border-card-hover: #374768;
+            --border-focus: #3b82f6;
+
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --primary-light: rgba(59, 130, 246, 0.15);
+            --primary-glow: rgba(59, 130, 246, 0.25);
+
+            --accent: #38bdf8;
+            --accent-light: rgba(56, 189, 248, 0.12);
+
+            --text-main: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-inverse: #0b0f19;
+
+            --danger: #f87171;
+            --danger-bg: #2a1618;
+            --danger-border: #4d2326;
+
+            --success: #22c55e;
+            --success-bg: #13291d;
+            --success-border: #1d4d33;
+
+            --badge-bg: rgba(59, 130, 246, 0.15);
+            --badge-text: #93c5fd;
+            --badge-border: rgba(59, 130, 246, 0.3);
+
+            --input-bg: #0b0f19;
+            --input-border: #222f46;
+            --input-placeholder: #64748b;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 3px 6px -1px rgba(0, 0, 0, 0.35);
+            --shadow-lg: 0 8px 16px -2px rgba(0, 0, 0, 0.4);
+            --shadow-glow: none;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            background-color: var(--bg-page);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 32px 20px;
+            transition: background-color var(--transition-smooth), color var(--transition-smooth);
+        }
+
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        /* Top Header Styling */
+        header {
+            margin-bottom: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .header-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .badge-academic {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            padding: 6px 14px;
+            border-radius: var(--radius-pill);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .theme-toggle-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: var(--radius-pill);
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-fast);
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-1px);
+            border-color: var(--border-card-hover, var(--border-card));
+            color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .header-title {
+            font-size: 2.1rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header-title-gradient {
+            color: var(--primary);
+        }
+
+        .header-desc {
+            color: var(--text-muted);
+            font-size: 1rem;
+            max-width: 650px;
+        }
+
+        /* Quick Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-1px);
+            border-color: var(--border-card-hover, var(--border-card));
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-size: 1.28rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Two-column Layout */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 920px) {
+            .layout-grid {
+                grid-template-columns: 380px 1fr;
+                align-items: start;
+            }
+
+            .form-sticky {
+                position: sticky;
+                top: 24px;
+            }
+        }
+
+        /* Cards Base */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-card);
+            box-shadow: var(--shadow-sm);
+            padding: 26px;
+            transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+        }
+
+        .card:hover {
+            border-color: var(--border-card-hover, var(--border-card));
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-card);
+            gap: 12px;
+        }
+
+        .card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-sm);
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card-icon-badge svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        /* Status & Alert Toast */
+        .status-message {
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.92rem;
+            font-weight: 500;
+            margin-bottom: 18px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+            animation: slideDownToast 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideDownToast {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-message.success {
+            background-color: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+            display: flex;
+        }
+
+        .status-message.error {
+            background-color: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
+            display: flex;
+        }
+
+        .status-message-icon {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-message-text {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .label-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .required {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color var(--transition-fast);
+        }
+
+        .input-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            border: 1.5px solid var(--input-border);
+            border-radius: var(--radius-md);
+            font-size: 0.94rem;
+            font-family: inherit;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--input-placeholder);
+            font-size: 0.9rem;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .input-wrapper:focus-within .input-icon {
+            color: var(--primary);
+        }
+
+        .char-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 24px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.92rem;
+            padding: 12px 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #ffffff;
+            box-shadow: var(--shadow-sm);
+            flex: 1;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-card-subtle);
+            border: 1px solid var(--border-card);
+            color: var(--text-secondary);
+            font-size: 0.84rem;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .btn-clear {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-card);
+            padding: 12px 16px;
+        }
+
+        .btn-clear:hover {
+            color: var(--text-main);
+            border-color: var(--input-border);
+            background: var(--bg-card-subtle);
+        }
+
+        /* List Controls & Search Filter Bar */
+        .list-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .search-box-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-icon svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 36px 10px 40px !important;
+            background-color: var(--bg-card-subtle) !important;
+            border: 1px solid var(--border-card) !important;
+            font-size: 0.9rem !important;
+            border-radius: var(--radius-md) !important;
+        }
+
+        .clear-search-btn {
+            position: absolute;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            display: none;
+            border-radius: 50%;
+            line-height: 1;
+        }
+
+        .clear-search-btn:hover {
+            color: var(--text-main);
+            background: var(--border-card);
+        }
+
+        .list-meta-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            padding: 0 4px;
+        }
+
+        .count-pill {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 2px 10px;
+            border-radius: var(--radius-pill);
+            font-weight: 700;
+            font-size: 0.78rem;
+        }
+
+        /* Item List Styling */
+        .item-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInItem 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeInItem {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .item-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--primary);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .item-card:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-card-hover, var(--border-card));
+        }
+
+        .item-card:hover::before {
+            opacity: 1;
+        }
+
+        .item-main {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-md);
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+            border: 1px solid var(--badge-border);
+            text-transform: uppercase;
+        }
+
+        .item-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-title {
+            font-size: 1.02rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+            word-break: break-word;
+        }
+
+        .item-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .item-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .item-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.76rem;
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            border: 1px solid var(--badge-border);
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Empty & Loading States */
+        .empty-state,
+        .loading-state {
+            text-align: center;
+            padding: 44px 20px;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: var(--bg-card-subtle);
+            border: 1.5px dashed var(--border-card);
+            border-radius: var(--radius-md);
+        }
+
+        .empty-icon,
+        .loading-icon {
+            color: var(--text-muted);
+            opacity: 0.8;
+        }
+
+        .empty-icon svg,
+        .loading-icon svg {
+            width: 44px;
+            height: 44px;
+        }
+
+        .empty-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .empty-desc {
+            font-size: 0.88rem;
+            max-width: 320px;
+            line-height: 1.4;
+        }
+
+        /* Spinner Animation */
+        .spinner {
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-card);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+            font-size: 0.84rem;
+            color: var(--text-muted);
+        }
+
+        .tech-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tech-pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            padding: 3px 10px;
+            border-radius: var(--radius-pill);
+            font-size: 0.74rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Highlight matching search terms */
+        mark.search-highlight {
+            background-color: rgba(250, 204, 21, 0.35);
+            color: inherit;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 640px) {
+            body {
+                padding: 16px 12px;
+            }
+
+            .header-title {
+                font-size: 1.65rem;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .item-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .item-meta {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Semantic Header with Academic & Status Bar -->
+        <header>
+            <div class="header-top-bar">
+                <div class="badge-academic">
+                    <span class="pulse-dot" aria-hidden="true"></span>
+                    <span>IT 4118 &bull; Cloud Application Development</span>
+                </div>
+                <button type="button" id="themeToggle" class="theme-toggle-btn" aria-label="Toggle light or dark theme">
+                    <span id="themeIcon" aria-hidden="true">🌙</span>
+                    <span id="themeLabel">Dark Mode</span>
+                </button>
+            </div>
+
+            <div class="header-content">
+                <h1 class="header-title">
+                    <span>CA1 &mdash;</span>
+                    <span class="header-title-gradient">Item Management</span>
+                </h1>
+                <p class="header-desc">
+                    High-performance cloud inventory client with PHP RESTful API backend &amp; asynchronous jQuery AJAX
+                    communication.
+                </p>
+            </div>
+        </header>
+
+        <!-- Dynamic Quick Stats Dashboard -->
+        <section class="stats-grid" aria-label="System Metrics">
+            <div class="stat-card">
+                <div class="stat-icon" aria-hidden="true">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Total Items</span>
+                    <span class="stat-value" id="statTotalCount">0</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" aria-hidden="true"
+                    style="background: var(--accent-light); color: var(--accent);">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Latest Item</span>
+                    <span class="stat-value" id="statLatestItem">&mdash;</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" aria-hidden="true">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">REST API Status</span>
+                    <span class="stat-value" id="statApiStatus"
+                        style="color: var(--primary); font-size: 1.05rem;">Checking...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Area: Responsive Two-Column Layout -->
+        <main class="layout-grid">
+            <!-- Left Column: Form Section for Adding Items -->
+            <section class="card form-sticky" aria-labelledby="form-heading">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon-badge" aria-hidden="true">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </div>
+                        <h2 id="form-heading" class="card-title">Add New Item</h2>
+                    </div>
+                </div>
+
+                <form id="addItemForm" novalidate>
+                    <div class="form-group">
+                        <label for="itemName">
+                            <span class="label-text">Item Name <span class="required"
+                                    title="Required field">*</span></span>
+                            <span class="char-count" id="nameCharCount">0/80</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <span class="input-icon" aria-hidden="true">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                            </span>
+                            <input type="text" id="itemName" name="name" placeholder="e.g. Mechanical Keyboard"
+                                maxlength="80" autocomplete="off" required />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="itemDescription">
+                            <span class="label-text">Description</span>
+                            <span class="char-count" id="descCharCount">Optional</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <span class="input-icon" aria-hidden="true">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" />
+                                </svg>
+                            </span>
+                            <input type="text" id="itemDescription" name="description"
+                                placeholder="e.g. RGB backlit wireless mechanical keyboard" maxlength="200"
+                                autocomplete="off" />
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <button type="submit" id="submitBtn" class="btn-primary">
+                            <svg id="submitBtnIcon" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span id="submitBtnText">Add Item</span>
+                        </button>
+                        <button type="button" id="clearBtn" class="btn-clear" title="Clear inputs">Reset</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Right Column: List Section for Displaying & Filtering Items -->
+            <section class="card" aria-labelledby="list-heading">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon-badge" aria-hidden="true">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                        </div>
+                        <h2 id="list-heading" class="card-title">Items Inventory</h2>
+                    </div>
+
+                    <button type="button" id="refreshBtn" class="btn-secondary" title="Reload list from server">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+
+                <!-- Status Feedback Notification Toast -->
+                <div id="statusMessage" class="status-message" role="alert" style="display: none;">
+                    <span class="status-message-icon" id="statusMessageIcon"></span>
+                    <span class="status-message-text" id="statusMessageText"></span>
+                </div>
+
+                <!-- Live Search & Counter Controls -->
+                <div class="list-controls">
+                    <div class="search-box-wrapper">
+                        <span class="search-icon" aria-hidden="true">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                        <input type="text" id="searchQuery" class="search-input"
+                            placeholder="Search items by name or description..." autocomplete="off" />
+                        <button type="button" id="clearSearchBtn" class="clear-search-btn"
+                            title="Clear search">&times;</button>
+                    </div>
+
+                    <div class="list-meta-bar">
+                        <span id="filteredCountText">Loading inventory...</span>
+                        <span class="count-pill" id="totalPill">0 Total</span>
+                    </div>
+                </div>
+
+                <!-- Loading State with Modern Spinner -->
+                <div id="loadingIndicator" class="loading-state" style="display: none;">
+                    <div class="loading-icon">
+                        <svg class="spinner" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-opacity="0.25"></circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </div>
+                    <span style="font-weight: 600;">Fetching items from REST endpoint...</span>
+                </div>
+
+                <!-- Dynamic Item List Container -->
+                <ul id="itemsContainer" class="item-list"></ul>
+
+                <!-- Empty State (No items or No Search Results) -->
+                <div id="emptyMessage" class="empty-state" style="display: none;">
+                    <div class="empty-icon" aria-hidden="true">
+                        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                    </div>
+                    <div class="empty-title" id="emptyTitle">No items found</div>
+                    <p class="empty-desc" id="emptyDesc">Add your first item using the form on the left!</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Semantic Footer with Details & Technology Tags -->
+        <footer>
+            <div class="tech-tags">
+                <span class="tech-pill">PHP 8.2</span>
+                <span class="tech-pill">RESTful API</span>
+                <span class="tech-pill">JSON</span>
+                <span class="tech-pill">jQuery AJAX</span>
+                <span class="tech-pill">Responsive UI</span>
+            </div>
+            <p>Designed for Cloud Computing Lab &bull; Runs on Localhost &bull; REST API &amp; Asynchronous Client</p>
+        </footer>
+    </div>
+
+    <!-- Application Script with jQuery AJAX -->
+    <script>
+        $(document).ready(function () {
+            var API_URL = 'api.php';
+            var itemsCache = []; // Local items cache for search/stats
+
+            // Utility to escape HTML and prevent XSS
+            function escapeHtml(str) {
+                if (!str) return '';
+                return $('<div>').text(str).html();
+            }
+
+            // Generate initial initials or monogram for avatar
+            function getMonogram(name) {
+                if (!name) return 'IT';
+                var parts = $.trim(name).split(/\s+/);
+                if (parts.length === 1) {
+                    return parts[0].substring(0, 2).toUpperCase();
+                }
+                return (parts[0][0] + parts[1][0]).toUpperCase();
+            }
+
+            // Theme Management (Light / Dark)
+            var currentTheme = localStorage.getItem('app_theme');
+            if (!currentTheme) {
+                currentTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            applyTheme(currentTheme);
+
+            $('#themeToggle').on('click', function () {
+                var newTheme = $('html').attr('data-theme') === 'dark' ? 'light' : 'dark';
+                applyTheme(newTheme);
+            });
+
+            function applyTheme(theme) {
+                $('html').attr('data-theme', theme);
+                localStorage.setItem('app_theme', theme);
+                if (theme === 'dark') {
+                    $('#themeIcon').text('☀️');
+                    $('#themeLabel').text('Light Mode');
+                } else {
+                    $('#themeIcon').text('🌙');
+                    $('#themeLabel').text('Dark Mode');
+                }
+            }
+
+            // Character counter for itemName
+            $('#itemName').on('input', function () {
+                var len = $(this).val().length;
+                $('#nameCharCount').text(len + '/80');
+            });
+
+            // Reset form button
+            $('#clearBtn').on('click', function () {
+                $('#addItemForm')[0].reset();
+                $('#nameCharCount').text('0/80');
+                $('#itemName').focus();
+            });
+
+            // Display status message toast
+            function showStatus(message, type) {
+                var $status = $('#statusMessage');
+                var $icon = $('#statusMessageIcon');
+                var $text = $('#statusMessageText');
+
+                $status.removeClass('success error');
+
+                if (type === 'success') {
+                    $status.addClass('success');
+                    $icon.html('<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>');
+                } else {
+                    $status.addClass('error');
+                    $icon.html('<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>');
+                }
+
+                $text.text(message);
+                $status.stop(true, true).fadeIn(200);
+
+                // Auto-dismiss after 4 seconds
+                setTimeout(function () {
+                    $status.fadeOut(300);
+                }, 4000);
+            }
+
+            // Highlight search query in text
+            function highlightMatch(text, query) {
+                var escaped = escapeHtml(text);
+                if (!query) return escaped;
+                var safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                var regex = new RegExp('(' + safeQuery + ')', 'gi');
+                return escaped.replace(regex, '<mark class="search-highlight">$1</mark>');
+            }
+
+            // Render items list based on active items & optional search term
+            function renderItemsList() {
+                var query = $.trim($('#searchQuery').val()).toLowerCase();
+                var $container = $('#itemsContainer');
+                $container.empty();
+
+                var filtered = itemsCache.filter(function (item) {
+                    if (!query) return true;
+                    var nameMatch = item.name && item.name.toLowerCase().indexOf(query) !== -1;
+                    var descMatch = item.description && item.description.toLowerCase().indexOf(query) !== -1;
+                    return nameMatch || descMatch;
+                });
+
+                // Update counters
+                $('#statTotalCount').text(itemsCache.length);
+                $('#totalPill').text(itemsCache.length + ' Total');
+
+                if (itemsCache.length > 0) {
+                    var latest = itemsCache[itemsCache.length - 1];
+                    $('#statLatestItem').text(latest.name || 'Unnamed');
+                } else {
+                    $('#statLatestItem').html('&mdash;');
+                }
+
+                if (itemsCache.length === 0) {
+                    $('#emptyTitle').text('No items found');
+                    $('#emptyDesc').text('Add your first item using the form on the left!');
+                    $('#emptyMessage').show();
+                    $('#filteredCountText').text('0 items');
+                    return;
+                }
+
+                if (filtered.length === 0) {
+                    $('#emptyTitle').text('No matching items');
+                    $('#emptyDesc').text('No items matched "' + escapeHtml(query) + '". Try another keyword.');
+                    $('#emptyMessage').show();
+                    $('#filteredCountText').text('0 matching results');
+                    return;
+                }
+
+                $('#emptyMessage').hide();
+                $('#filteredCountText').text('Showing ' + filtered.length + ' of ' + itemsCache.length + ' items');
+
+                // Generate item cards
+                $.each(filtered, function (index, item) {
+                    var monogram = getMonogram(item.name);
+                    var highlightedName = highlightMatch(item.name, query);
+                    var descHtml = item.description
+                        ? '<div class="item-desc">' + highlightMatch(item.description, query) + '</div>'
+                        : '';
+
+                    var formattedId = String(item.id);
+                    if (formattedId.length === 1) formattedId = '0' + formattedId;
+
+                    var itemHtml =
+                        '<li class="item-card" data-id="' + escapeHtml(String(item.id)) + '">' +
+                        '<div class="item-main">' +
+                        '<div class="item-avatar" aria-hidden="true">' + escapeHtml(monogram) + '</div>' +
+                        '<div class="item-content">' +
+                        '<div class="item-title">' + highlightedName + '</div>' +
+                        descHtml +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="item-meta">' +
+                        '<span class="item-badge" title="Database Identifier">ID #' + escapeHtml(formattedId) + '</span>' +
+                        '</div>' +
+                        '</li>';
+
+                    $container.append(itemHtml);
+                });
+            }
+
+            // Search query input handling
+            $('#searchQuery').on('input', function () {
+                var val = $(this).val();
+                if (val.length > 0) {
+                    $('#clearSearchBtn').show();
+                } else {
+                    $('#clearSearchBtn').hide();
+                }
+                renderItemsList();
+            });
+
+            $('#clearSearchBtn').on('click', function () {
+                $('#searchQuery').val('').focus();
+                $(this).hide();
+                renderItemsList();
+            });
+
+            // 1. READ: Fetch and display items using $.ajax (GET)
+            function loadItems() {
+                $('#loadingIndicator').show();
+                $('#itemsContainer').empty();
+                $('#emptyMessage').hide();
+
+                // Rotate refresh icon
+                var $refreshIcon = $('#refreshBtn svg');
+                $refreshIcon.addClass('spinner');
+
+                $.ajax({
+                    url: API_URL,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (items) {
+                        $('#loadingIndicator').hide();
+                        $refreshIcon.removeClass('spinner');
+
+                        $('#statApiStatus').text('Connected (200 OK)').css('color', 'var(--primary)');
+
+                        if (Array.isArray(items)) {
+                            itemsCache = items;
+                        } else {
+                            itemsCache = [];
+                        }
+
+                        renderItemsList();
+                    },
+                    error: function (xhr, status, error) {
+                        $('#loadingIndicator').hide();
+                        $refreshIcon.removeClass('spinner');
+
+                        $('#statApiStatus').text('Offline / Error').css('color', 'var(--danger)');
+
+                        var errorMsg = 'Failed to load items from server.';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMsg = xhr.responseJSON.error;
+                        }
+                        showStatus(errorMsg, 'error');
+                        $('#emptyTitle').text('Connection Error');
+                        $('#emptyDesc').text('Could not fetch items from ' + API_URL + '. Check your server.');
+                        $('#emptyMessage').show();
+                    }
+                });
+            }
+
+            // 2. CREATE: Add new item using $.ajax (POST) and refresh list
+            $('#addItemForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var nameVal = $('#itemName').val().trim();
+                var descVal = $('#itemDescription').val().trim();
+
+                // Client-side validation
+                if (!nameVal) {
+                    showStatus('Validation Error: Item Name is required.', 'error');
+                    $('#itemName').focus();
+                    return;
+                }
+
+                var payload = {
+                    name: nameVal
+                };
+                if (descVal) {
+                    payload.description = descVal;
+                }
+
+                var $submitBtn = $('#submitBtn');
+                var $submitBtnText = $('#submitBtnText');
+                var $submitBtnIcon = $('#submitBtnIcon');
+
+                $submitBtn.prop('disabled', true);
+                $submitBtnText.text('Adding Item...');
+                $submitBtnIcon.addClass('spinner');
+
+                $.ajax({
+                    url: API_URL,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    dataType: 'json',
+                    success: function (response) {
+                        $submitBtn.prop('disabled', false);
+                        $submitBtnText.text('Add Item');
+                        $submitBtnIcon.removeClass('spinner');
+
+                        // Clear inputs
+                        $('#itemName').val('');
+                        $('#itemDescription').val('');
+                        $('#nameCharCount').text('0/80');
+
+                        // Show success message
+                        showStatus('"' + nameVal + '" added successfully!', 'success');
+
+                        // Reload items
+                        loadItems();
+                    },
+                    error: function (xhr, status, error) {
+                        $submitBtn.prop('disabled', false);
+                        $submitBtnText.text('Add Item');
+                        $submitBtnIcon.removeClass('spinner');
+
+                        var errorMsg = 'Failed to add item.';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMsg = xhr.responseJSON.error;
+                        } else if (xhr.status === 400) {
+                            errorMsg = 'Bad Request (400): Validation failed.';
+                        } else if (xhr.status === 405) {
+                            errorMsg = 'Method Not Allowed (405).';
+                        }
+                        showStatus(errorMsg, 'error');
+                    }
+                });
+            });
+
+            // Manual refresh button click
+            $('#refreshBtn').on('click', function () {
+                loadItems();
+            });
+
+            // Initial load of items on page ready
+            loadItems();
+        });
+    </script>
+</body>
+
+</html>
